@@ -1024,49 +1024,9 @@ button {
 /* ——— Surprise Me ——— */
 
 .surprise-section {
-  margin-top: 3rem;
+  margin-top: 2rem;
   text-align: center;
-  padding: 2.5rem 1.5rem;
-  background: var(--glass);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   animation: cardEnter 0.5s ease-out both;
-}
-
-.surprise-slot {
-  width: 100%;
-  max-width: 320px;
-  height: 100px;
-  overflow: hidden;
-  margin: 0 auto 1.25rem;
-  border-radius: var(--radius-sm);
-  position: relative;
-  mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
-}
-
-.surprise-slot-inner {
-  transition: transform 0.1s;
-}
-
-.surprise-slot-item {
-  padding: 8px 14px;
-  font-size: var(--text-sm);
-  color: var(--text-tertiary);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  height: 34px;
-  line-height: 18px;
-}
-
-.surprise-slot-item.winner {
-  color: var(--accent);
-  font-weight: 600;
-  background: rgba(139, 150, 255, 0.08);
 }
 
 .surprise-btn {
@@ -1191,8 +1151,7 @@ button {
 
   /* Surprise responsive */
   .surprise-section {
-    margin-top: 2rem;
-    padding: 2rem 1rem;
+    margin-top: 1.5rem;
   }
 }
 

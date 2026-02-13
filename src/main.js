@@ -307,9 +307,6 @@ function renderSurpriseSection(container) {
   const section = document.createElement('div')
   section.className = 'surprise-section'
   section.innerHTML = `
-    <div class="surprise-slot" id="surprise-slot">
-      <div class="surprise-slot-inner" id="surprise-reel"></div>
-    </div>
     <button class="surprise-btn" id="surprise-btn">Surprise me</button>
     <div class="surprise-result" id="surprise-result"></div>
   `
@@ -322,7 +319,6 @@ function spinSurprise() {
   if (currentNews.length === 0) return
 
   const btn = document.getElementById('surprise-btn')
-  const reel = document.getElementById('surprise-reel')
   const result = document.getElementById('surprise-result')
 
   btn.disabled = true
@@ -334,51 +330,20 @@ function spinSurprise() {
   const pool = unread.length > 0 ? unread : currentNews
   const winner = pool[Math.floor(Math.random() * pool.length)]
 
-  // Build reel items (shuffle of titles)
-  const shuffled = [...currentNews].sort(() => Math.random() - 0.5)
-  const reelTitles = [...shuffled.map(n => n.title), winner.title]
-  const itemHeight = 34
+  setTimeout(() => {
+    result.innerHTML = `
+      <div class="surprise-result-title">${winner.title}</div>
+      <div class="surprise-result-meta">${winner.domain} \u00B7 ${winner.pubDate}${winner.topics.length > 0 ? ' \u00B7 ' + winner.topics.join(', ') : ''}</div>
+      <a href="${winner.link}" target="_blank" class="surprise-result-link" data-link="${winner.link}">Read article \u2192</a>
+    `
+    result.classList.add('visible')
+    btn.disabled = false
 
-  reel.innerHTML = reelTitles.map((t, i) =>
-    `<div class="surprise-slot-item${i === reelTitles.length - 1 ? ' winner' : ''}">${t}</div>`
-  ).join('')
-
-  // Animate the reel
-  let tick = 0
-  const totalTicks = 25
-  reel.style.transition = 'none'
-  reel.style.transform = 'translateY(0)'
-
-  const interval = setInterval(() => {
-    tick++
-    // Accelerate then decelerate
-    const progress = tick / totalTicks
-    const idx = Math.floor(progress * (reelTitles.length - 1))
-    reel.style.transform = `translateY(-${idx * itemHeight}px)`
-
-    if (tick >= totalTicks) {
-      clearInterval(interval)
-      // Land on winner (last item)
-      reel.style.transition = 'transform 0.4s cubic-bezier(0.2, 0.8, 0.3, 1)'
-      reel.style.transform = `translateY(-${(reelTitles.length - 1) * itemHeight}px)`
-
-      setTimeout(() => {
-        result.innerHTML = `
-          <div class="surprise-result-title">${winner.title}</div>
-          <div class="surprise-result-meta">${winner.domain} \u00B7 ${winner.pubDate}${winner.topics.length > 0 ? ' \u00B7 ' + winner.topics.join(', ') : ''}</div>
-          <a href="${winner.link}" target="_blank" class="surprise-result-link" data-link="${winner.link}">Read article \u2192</a>
-        `
-        result.classList.add('visible')
-        btn.disabled = false
-
-        // Mark as read on link click
-        const link = result.querySelector('.surprise-result-link')
-        if (link) {
-          link.addEventListener('click', () => markAsRead(winner.link))
-        }
-      }, 500)
+    const link = result.querySelector('.surprise-result-link')
+    if (link) {
+      link.addEventListener('click', () => markAsRead(winner.link))
     }
-  }, 60 + tick * 3)
+  }, 300)
 }
 
 // ——— Command Palette ———
