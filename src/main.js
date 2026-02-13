@@ -298,54 +298,6 @@ if (briefingContainer) {
   })
 }
 
-// ——— Surprise Me ———
-
-function renderSurpriseSection(container) {
-  const existing = container.querySelector('.surprise-section')
-  if (existing) existing.remove()
-
-  const section = document.createElement('div')
-  section.className = 'surprise-section'
-  section.innerHTML = `
-    <button class="surprise-btn" id="surprise-btn">Surprise me</button>
-    <div class="surprise-result" id="surprise-result"></div>
-  `
-  container.appendChild(section)
-
-  document.getElementById('surprise-btn').addEventListener('click', spinSurprise)
-}
-
-function spinSurprise() {
-  if (currentNews.length === 0) return
-
-  const btn = document.getElementById('surprise-btn')
-  const result = document.getElementById('surprise-result')
-
-  btn.disabled = true
-  result.classList.remove('visible')
-
-  // Pick random unread story, fallback to any
-  const readSet = getReadSet()
-  const unread = currentNews.filter(n => !readSet.has(n.link))
-  const pool = unread.length > 0 ? unread : currentNews
-  const winner = pool[Math.floor(Math.random() * pool.length)]
-
-  setTimeout(() => {
-    result.innerHTML = `
-      <div class="surprise-result-title">${winner.title}</div>
-      <div class="surprise-result-meta">${winner.domain} \u00B7 ${winner.pubDate}${winner.topics.length > 0 ? ' \u00B7 ' + winner.topics.join(', ') : ''}</div>
-      <a href="${winner.link}" target="_blank" class="surprise-result-link" data-link="${winner.link}">Read article \u2192</a>
-    `
-    result.classList.add('visible')
-    btn.disabled = false
-
-    const link = result.querySelector('.surprise-result-link')
-    if (link) {
-      link.addEventListener('click', () => markAsRead(winner.link))
-    }
-  }, 300)
-}
-
 // ——— Command Palette ———
 
 const cmdOverlay = document.getElementById('cmd-overlay')
@@ -613,10 +565,6 @@ async function loadNews() {
   const existingGrid = container.querySelector('.news-grid')
   if (existingGrid) existingGrid.remove()
 
-  // Remove existing surprise section before re-appending grid
-  const existingSurprise = container.querySelector('.surprise-section')
-  if (existingSurprise) existingSurprise.remove()
-
   container.appendChild(newsGrid)
 
   // Update timestamp
@@ -633,9 +581,6 @@ async function loadNews() {
 
   // Update News Pulse
   updatePulse(news)
-
-  // Render Surprise Me after the grid
-  renderSurpriseSection(container)
 
   // Add event listeners AFTER appending to DOM
   setupInteractions()

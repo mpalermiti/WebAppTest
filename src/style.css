@@ -1021,77 +1021,6 @@ button {
   border-radius: 3px;
 }
 
-/* ——— Surprise Me ——— */
-
-.surprise-section {
-  margin-top: 2rem;
-  text-align: center;
-  animation: cardEnter 0.5s ease-out both;
-}
-
-.surprise-btn {
-  background: linear-gradient(135deg, #8b96ff, #b07bff);
-  border: none;
-  color: white;
-  padding: 0.75rem 2rem;
-  border-radius: var(--radius-sm);
-  font-size: var(--text-base);
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  letter-spacing: -0.01em;
-}
-
-.surprise-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 8px 30px rgba(139, 150, 255, 0.3);
-}
-
-.surprise-btn:active {
-  transform: scale(0.97);
-}
-
-.surprise-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.surprise-result {
-  margin-top: 1.25rem;
-  opacity: 0;
-  transition: opacity 0.4s ease;
-}
-
-.surprise-result.visible {
-  opacity: 1;
-}
-
-.surprise-result-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 0.35rem;
-}
-
-.surprise-result-meta {
-  font-size: var(--text-xs);
-  color: var(--text-tertiary);
-  margin-bottom: 0.5rem;
-}
-
-.surprise-result-link {
-  display: inline-block;
-  font-size: var(--text-sm);
-  font-weight: 500;
-  color: var(--accent);
-  transition: color 0.2s;
-}
-
-.surprise-result-link:hover {
-  color: #a3adff;
-}
-
 /* ——— Responsive ——— */
 
 @media (max-width: 768px) {
@@ -1149,10 +1078,6 @@ button {
     font-size: 1rem;
   }
 
-  /* Surprise responsive */
-  .surprise-section {
-    margin-top: 1.5rem;
-  }
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
