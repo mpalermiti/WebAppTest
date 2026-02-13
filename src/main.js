@@ -8,7 +8,7 @@ let activeFilter = null
 app.innerHTML = `
   <div class="news-container">
     <div class="page-header">
-      <h1 class="page-title">Latest tech news</h1>
+      <h1 class="page-title" id="page-title">Latest tech news</h1>
       <span class="last-updated" id="last-updated"></span>
     </div>
     <div class="active-filter" id="active-filter" style="display:none">
@@ -191,6 +191,9 @@ function setupInteractions() {
 
 // Clear filter button
 document.getElementById('clear-filter').addEventListener('click', clearFilter)
+
+// Title click reloads
+document.getElementById('page-title').addEventListener('click', () => location.reload())
 
 // Initial load
 loadNews()
