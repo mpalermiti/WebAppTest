@@ -46,8 +46,8 @@ function stripHtml(html) {
   return tmp.textContent || tmp.innerText || ''
 }
 
-// Fetch the actual article and extract a useful summary
-async function fetchArticleSummary(url) {
+// Fetch the actual article and extract both a short summary and deeper extract
+async function fetchArticleContent(url) {
   try {
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 8000)
@@ -58,32 +58,44 @@ async function fetchArticleSummary(url) {
     const html = await res.text()
     const doc = new DOMParser().parseFromString(html, 'text/html')
 
-    // Try meta description first (most reliable)
+    // Get meta description for the short summary
     const metaDesc = doc.querySelector('meta[property="og:description"]')?.content
       || doc.querySelector('meta[name="description"]')?.content
       || doc.querySelector('meta[name="twitter:description"]')?.content
       || ''
 
-    if (metaDesc && metaDesc.length > 40) {
-      return cleanSummary(metaDesc, 200)
-    }
-
-    // Fallback: find the first meaningful paragraph
+    // Extract meaningful paragraphs from article body
     const selectors = [
       'article p', '[class*="article"] p', '[class*="story"] p',
       '[class*="post"] p', '[class*="content"] p', 'main p',
       '.entry-content p', '.body p', '#article-body p'
     ]
+    const skipPattern = /^(by |photo |image |credit |published |updated |share |comment|advertisement|subscribe|sign up|newsletter)/i
     const paragraphs = Array.from(doc.querySelectorAll(selectors.join(', ')))
-    for (const p of paragraphs) {
-      const text = p.textContent.trim()
-      // Skip short paragraphs, bylines, dates, and navigation text
-      if (text.length > 80 && !text.match(/^(by |photo |image |credit |published |updated |share |comment)/i)) {
-        return cleanSummary(text, 200)
-      }
-    }
+      .map(p => p.textContent.trim())
+      .filter(t => t.length > 60 && !skipPattern.test(t))
 
-    return null
+    // Deduplicate paragraphs (some selectors overlap)
+    const seen = new Set()
+    const uniqueParagraphs = paragraphs.filter(p => {
+      const key = p.substring(0, 80)
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+
+    // Short summary: meta description or first paragraph
+    const shortSummary = (metaDesc && metaDesc.length > 40)
+      ? cleanSummary(metaDesc, 200)
+      : (uniqueParagraphs[0] ? cleanSummary(uniqueParagraphs[0], 200) : null)
+
+    // Deep extract: multiple paragraphs for expanded view
+    const deepParagraphs = uniqueParagraphs.slice(0, 4).map(p => cleanSummary(p, 300))
+
+    return {
+      summary: shortSummary,
+      deepExtract: deepParagraphs.length > 0 ? deepParagraphs : null,
+    }
   } catch {
     return null
   }
@@ -261,24 +273,25 @@ function extractFallbackSummary(description, title) {
   return null
 }
 
-// Enrich stories with article summaries (called after initial render)
+// Enrich stories with article content (called after initial render)
 export async function enrichWithSummaries(news) {
   // Fetch 6 at a time to avoid overwhelming the CORS proxy
   const batchSize = 6
-  const summaries = new Array(news.length).fill(null)
+  const contents = new Array(news.length).fill(null)
 
   for (let i = 0; i < news.length; i += batchSize) {
     const batch = news.slice(i, i + batchSize)
     const results = await Promise.allSettled(
-      batch.map(item => fetchArticleSummary(item.link))
+      batch.map(item => fetchArticleContent(item.link))
     )
     results.forEach((result, j) => {
-      summaries[i + j] = result.status === 'fulfilled' ? result.value : null
+      contents[i + j] = result.status === 'fulfilled' ? result.value : null
     })
   }
 
   return news.map((item, i) => ({
     ...item,
-    summary: summaries[i] || extractFallbackSummary(item.description, item.title),
+    summary: contents[i]?.summary || extractFallbackSummary(item.description, item.title),
+    deepExtract: contents[i]?.deepExtract || null,
   }))
 }

@@ -411,11 +411,32 @@ button {
   color: var(--text-primary);
 }
 
-.expand-content .full-description {
+.deep-extract {
+  margin-bottom: 1rem;
+}
+
+.deep-extract-paragraph {
   color: var(--text-secondary);
   font-size: 0.875rem;
   line-height: 1.7;
-  margin-bottom: 1rem;
+  margin: 0 0 0.75rem 0;
+  padding-left: 0.875rem;
+  border-left: 2px solid rgba(110, 126, 255, 0.25);
+}
+
+.deep-extract-paragraph:last-child {
+  margin-bottom: 0;
+}
+
+.deep-extract-paragraph.fallback {
+  color: var(--text-tertiary);
+  font-style: italic;
+  border-left-color: var(--glass-border);
+}
+
+.deep-extract-loading {
+  padding-left: 0.875rem;
+  border-left: 2px solid var(--glass-border);
 }
 
 /* ——— Quick Take & Sources ——— */

@@ -106,10 +106,14 @@ async function loadNews() {
         </div>
       ` : ''}
       <div class="expand-content">
-        <p class="full-description">${item.description || ''}</p>
+        <div class="deep-extract" data-deep-index="${index}">
+          <div class="deep-extract-loading">
+            <span class="summary-shimmer">Loading deeper summary...</span>
+          </div>
+        </div>
         <a href="${item.link}" target="_blank" class="read-link">Read full article →</a>
       </div>
-      <button class="expand-btn">Read more</button>
+      <button class="expand-btn">Deeper dive</button>
     `
 
     newsGrid.appendChild(card)
@@ -138,15 +142,26 @@ async function loadNews() {
   // Add event listeners AFTER appending to DOM
   setupInteractions()
 
-  // Fetch real article summaries in background
+  // Fetch real article content in background
   enrichWithSummaries(news).then(enriched => {
     enriched.forEach((item, index) => {
+      // Populate quick-take summary
       const el = document.querySelector(`.quick-take[data-index="${index}"]`)
       if (el && item.summary) {
         el.textContent = item.summary
       } else if (el) {
         el.textContent = ''
         el.style.display = 'none'
+      }
+
+      // Populate deep extract in expand content
+      const deepEl = document.querySelector(`.deep-extract[data-deep-index="${index}"]`)
+      if (deepEl && item.deepExtract && item.deepExtract.length > 0) {
+        deepEl.innerHTML = item.deepExtract
+          .map(p => `<p class="deep-extract-paragraph">${p}</p>`)
+          .join('')
+      } else if (deepEl) {
+        deepEl.innerHTML = '<p class="deep-extract-paragraph fallback">Full summary unavailable for this article.</p>'
       }
     })
   })
@@ -159,7 +174,7 @@ function setupInteractions() {
       e.stopPropagation()
       const card = btn.closest('.news-card')
       card.classList.toggle('expanded')
-      btn.textContent = card.classList.contains('expanded') ? 'Show less' : 'Read more'
+      btn.textContent = card.classList.contains('expanded') ? 'Show less' : 'Deeper dive'
     })
   })
 
