@@ -188,7 +188,7 @@ button {
   background: var(--accent-dim);
   border: 1px solid var(--accent-border);
   border-radius: var(--radius-sm);
-  animation: fadeUp 0.25s ease-out both;
+  animation: cardEnter 0.25s ease-out both;
 }
 
 .active-filter-label {

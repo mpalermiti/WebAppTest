@@ -43,8 +43,8 @@ function applyFilter(topic) {
     if (cardTopics.includes(topic)) {
       card.style.display = ''
       card.style.animation = 'none'
-      card.offsetHeight // trigger reflow
-      card.style.animation = 'fadeUp 0.3s ease-out both'
+      card.offsetHeight
+      card.style.animation = 'cardEnter 0.3s ease-out both'
     } else {
       card.style.display = 'none'
     }
@@ -58,7 +58,7 @@ function clearFilter() {
     card.style.display = ''
     card.style.animation = 'none'
     card.offsetHeight
-    card.style.animation = 'fadeUp 0.3s ease-out both'
+    card.style.animation = 'cardEnter 0.3s ease-out both'
   })
 }
 
