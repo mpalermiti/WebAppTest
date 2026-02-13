@@ -2,6 +2,7 @@ import './style.css'
 import { getTechmemeNews, enrichWithSummaries } from './techmeme.js'
 
 const app = document.querySelector('#app')
+let activeFilter = null
 
 // Show loading state with skeleton cards
 app.innerHTML = `
@@ -9,6 +10,10 @@ app.innerHTML = `
     <div class="page-header">
       <h1 class="page-title">Latest tech news</h1>
       <span class="last-updated" id="last-updated"></span>
+    </div>
+    <div class="active-filter" id="active-filter" style="display:none">
+      <span class="active-filter-label">Filtered by <strong id="filter-name"></strong></span>
+      <button class="clear-filter-btn" id="clear-filter">Clear filter</button>
     </div>
     <div class="news-grid">
       ${Array(6).fill('').map(() => `
@@ -24,6 +29,38 @@ app.innerHTML = `
     </div>
   </div>
 `
+
+// Filter cards by topic
+function applyFilter(topic) {
+  activeFilter = topic
+  const filterBar = document.getElementById('active-filter')
+  const filterName = document.getElementById('filter-name')
+  filterBar.style.display = 'flex'
+  filterName.textContent = topic
+
+  document.querySelectorAll('.news-card:not(.skeleton-card)').forEach(card => {
+    const cardTopics = Array.from(card.querySelectorAll('.topic-tag')).map(t => t.textContent)
+    if (cardTopics.includes(topic)) {
+      card.style.display = ''
+      card.style.animation = 'none'
+      card.offsetHeight // trigger reflow
+      card.style.animation = 'fadeUp 0.3s ease-out both'
+    } else {
+      card.style.display = 'none'
+    }
+  })
+}
+
+function clearFilter() {
+  activeFilter = null
+  document.getElementById('active-filter').style.display = 'none'
+  document.querySelectorAll('.news-card:not(.skeleton-card)').forEach(card => {
+    card.style.display = ''
+    card.style.animation = 'none'
+    card.offsetHeight
+    card.style.animation = 'fadeUp 0.3s ease-out both'
+  })
+}
 
 // Load news
 async function loadNews() {
@@ -45,6 +82,7 @@ async function loadNews() {
     const card = document.createElement('div')
     card.className = 'news-card card-type-1'
     card.dataset.link = item.link
+    card.dataset.topics = JSON.stringify(item.topics)
     card.style.animationDelay = `${index * 0.05}s`
 
     if (item.trending) card.classList.add('trending')
@@ -58,7 +96,7 @@ async function loadNews() {
       </div>
       <h3 class="news-title">${item.title}</h3>
       <div class="card-meta">
-        ${item.topics.length > 0 ? `<div class="topic-tags">${item.topics.map(t => `<span class="topic-tag">${t}</span>`).join('')}</div>` : ''}
+        ${item.topics.length > 0 ? `<div class="topic-tags">${item.topics.map(t => `<span class="topic-tag" data-topic="${t}">${t}</span>`).join('')}</div>` : ''}
         ${item.sourceCount > 1 ? `<span class="source-count">${item.sourceCount} sources</span>` : ''}
       </div>
       <p class="quick-take" data-index="${index}">${item.summary || '<span class="summary-shimmer">Fetching summary...</span>'}</p>
@@ -94,6 +132,9 @@ async function loadNews() {
     timestamp.textContent = `Updated ${new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`
   }
 
+  // Re-apply active filter if one was set
+  if (activeFilter) applyFilter(activeFilter)
+
   // Add event listeners AFTER appending to DOM
   setupInteractions()
 
@@ -121,7 +162,17 @@ function setupInteractions() {
       btn.textContent = card.classList.contains('expanded') ? 'Show less' : 'Read more'
     })
   })
+
+  document.querySelectorAll('.topic-tag').forEach(tag => {
+    tag.addEventListener('click', (e) => {
+      e.stopPropagation()
+      applyFilter(tag.dataset.topic)
+    })
+  })
 }
+
+// Clear filter button
+document.getElementById('clear-filter').addEventListener('click', clearFilter)
 
 // Initial load
 loadNews()

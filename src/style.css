@@ -79,7 +79,47 @@ button {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin: 0 0 2.5rem 0;
+  margin: 0 0 1.5rem 0;
+}
+
+/* ——— Active Filter Bar ——— */
+
+.active-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding: 0.6rem 1rem;
+  background: rgba(110, 126, 255, 0.08);
+  border: 1px solid rgba(110, 126, 255, 0.2);
+  border-radius: var(--radius-sm);
+  animation: fadeUp 0.25s ease-out both;
+}
+
+.active-filter-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.active-filter-label strong {
+  color: var(--accent);
+}
+
+.clear-filter-btn {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glass-border) !important;
+  padding: 0.25rem 0.65rem;
+  border-radius: 100px;
+  margin-left: auto;
+  transition: all 0.2s;
+}
+
+.clear-filter-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.14);
 }
 
 .page-title {
@@ -266,6 +306,14 @@ button {
   border: 1px solid rgba(110, 126, 255, 0.2);
   padding: 0.15rem 0.5rem;
   border-radius: 100px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.topic-tag:hover {
+  background: rgba(110, 126, 255, 0.22);
+  border-color: rgba(110, 126, 255, 0.4);
+  color: #8b96ff;
 }
 
 /* ——— Summary Shimmer ——— */
