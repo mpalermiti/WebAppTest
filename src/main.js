@@ -1,5 +1,5 @@
 import './style.css'
-import { getTechmemeNews } from './techmeme.js'
+import { getTechmemeNews, enrichWithSummaries } from './techmeme.js'
 
 const app = document.querySelector('#app')
 
@@ -47,19 +47,26 @@ async function loadNews() {
     card.dataset.link = item.link
     card.style.animationDelay = `${index * 0.05}s`
 
-    const wordCount = item.description ? item.description.split(/\s+/).length : 0
-    const readTime = Math.max(1, Math.ceil(wordCount / 200))
+    if (item.trending) card.classList.add('trending')
 
     card.innerHTML = `
       <div class="news-card-header">
+        ${item.trending ? '<span class="trending-badge">🔥</span>' : ''}
+        ${item.urgency ? `<span class="urgency-label">${item.urgency}</span>` : ''}
         <span class="news-source">${item.domain}</span>
         <span class="news-time">${item.pubDate}</span>
       </div>
       <h3 class="news-title">${item.title}</h3>
-      <div class="reading-meta">
-        <span class="read-time">${readTime} min read</span>
+      <div class="card-meta">
+        ${item.topics.length > 0 ? `<div class="topic-tags">${item.topics.map(t => `<span class="topic-tag">${t}</span>`).join('')}</div>` : ''}
+        ${item.sourceCount > 1 ? `<span class="source-count">${item.sourceCount} sources</span>` : ''}
       </div>
-      <p class="news-description">${item.description ? item.description.substring(0, 120) + '...' : ''}</p>
+      <p class="quick-take" data-index="${index}">${item.summary || '<span class="summary-shimmer">Fetching summary...</span>'}</p>
+      ${item.relatedSources.length > 0 ? `
+        <div class="related-sources">
+          ${item.relatedSources.map(s => `<span class="source-tag">${s}</span>`).join('')}
+        </div>
+      ` : ''}
       <div class="expand-content">
         <p class="full-description">${item.description || ''}</p>
         <a href="${item.link}" target="_blank" class="read-link">Read full article →</a>
@@ -89,6 +96,19 @@ async function loadNews() {
 
   // Add event listeners AFTER appending to DOM
   setupInteractions()
+
+  // Fetch real article summaries in background
+  enrichWithSummaries(news).then(enriched => {
+    enriched.forEach((item, index) => {
+      const el = document.querySelector(`.quick-take[data-index="${index}"]`)
+      if (el && item.summary) {
+        el.textContent = item.summary
+      } else if (el) {
+        el.textContent = ''
+        el.style.display = 'none'
+      }
+    })
+  })
 }
 
 // Setup interactions
