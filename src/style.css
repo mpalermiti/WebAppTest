@@ -489,11 +489,4 @@ button {
     grid-template-columns: repeat(3, 1fr);
   }
 
-  .news-card.trending:first-child {
-    grid-column: span 2;
-  }
-
-  .news-card.trending:first-child .news-title {
-    font-size: 1.25rem;
-  }
 }
