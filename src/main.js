@@ -7,7 +7,7 @@ let currentNews = []
 
 // ——— Theme ———
 
-const THEME_KEY = 'newsloop_theme'
+const THEME_KEY = 'glowstack_theme'
 const DEFAULT_THEME = 'warm-ember'
 
 const DARK_THEMES = [
@@ -106,7 +106,7 @@ function updateNewCount() {
 app.innerHTML = `
   <div class="news-container">
     <div class="page-header">
-      <h1 class="page-title" id="page-title">Latest tech news</h1>
+      <h1 class="page-title" id="page-title">Glow Stack</h1>
       <span class="new-count-badge" id="new-count" style="display:none"></span>
       <div class="header-divider"></div>
       <div class="pulse-mini" id="pulse-mini" style="display:none">
