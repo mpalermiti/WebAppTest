@@ -612,6 +612,9 @@ function buildExtras(item, original, hasDeepExtract) {
 
 // ——— Load News ———
 
+let isFirstLoad = true
+const enrichedCache = new Map()
+
 async function loadNews() {
   const container = document.querySelector('.news-container')
   const news = await getTechmemeNews()
@@ -623,6 +626,11 @@ async function loadNews() {
     }
     return
   }
+
+  // Remember expanded cards before replacing grid
+  const expandedLinks = new Set(
+    [...document.querySelectorAll('.news-card.expanded')].map(c => c.dataset.link)
+  )
 
   currentNews = news
 
@@ -640,10 +648,21 @@ async function loadNews() {
     if (sortedIndex === 0) card.classList.add('top-story')
     card.dataset.link = item.link
     card.dataset.topics = JSON.stringify(item.topics)
-    card.style.animationDelay = `${sortedIndex * 0.05}s`
+
+    // Only animate on first load — refresh should be seamless
+    if (isFirstLoad) {
+      card.style.animationDelay = `${sortedIndex * 0.05}s`
+    } else {
+      card.style.animation = 'none'
+      card.style.opacity = '1'
+    }
 
     if (item.trending) card.classList.add('trending')
     if (isRead(item.link)) card.classList.add('is-read')
+
+    // Restore expanded state on refresh
+    const wasExpanded = expandedLinks.has(item.link)
+    if (wasExpanded) card.classList.add('expanded')
 
     card.innerHTML = `
       <div class="news-card-header">
@@ -667,6 +686,37 @@ async function loadNews() {
       </div>
       <button class="expand-btn">Summary</button>
     `
+
+    // Restore cached enrichment on refresh (avoids shimmer flash)
+    const cached = enrichedCache.get(item.link)
+    if (cached) {
+      const quickTake = card.querySelector('.quick-take')
+      if (quickTake && cached.summary && cached.summary !== item.snippet) {
+        quickTake.textContent = cached.summary
+      }
+      const deepEl = card.querySelector('.deep-extract')
+      if (deepEl) {
+        let html = ''
+        const hasDeep = cached.deepExtract && cached.deepExtract.length > 0
+        if (hasDeep) {
+          if (cached.altSource && !sourcesMatch(cached.altSource, item.domain)) {
+            html += `<p class="deep-extract-label">Via ${cached.altSource}</p>`
+          }
+          html += cached.deepExtract.map(p => `<p class="deep-extract-paragraph">${p}</p>`).join('')
+        }
+        html += buildExtras(cached, news[index], hasDeep)
+        deepEl.innerHTML = html
+      }
+      const btn = card.querySelector('.expand-btn')
+      const label = (cached.deepExtract && cached.deepExtract.length > 0) ? 'Summary' : 'Explore'
+      if (btn) {
+        btn.setAttribute('data-label', label)
+        btn.textContent = wasExpanded ? 'Show less' : label
+      }
+    } else if (wasExpanded) {
+      const btn = card.querySelector('.expand-btn')
+      if (btn) btn.textContent = 'Show less'
+    }
 
     newsGrid.appendChild(card)
   })
@@ -705,9 +755,18 @@ async function loadNews() {
   // Add event listeners AFTER appending to DOM
   setupInteractions()
 
+  isFirstLoad = false
+
   // Fetch deeper article content in background
   enrichWithSummaries(news).then(enriched => {
     enriched.forEach((item, index) => {
+      // Cache enrichment for seamless refresh
+      enrichedCache.set(news[index].link, {
+        summary: item.summary,
+        deepExtract: item.deepExtract,
+        altSource: item.altSource
+      })
+
       const el = document.querySelector(`.quick-take[data-index="${index}"]`)
       if (el && item.summary && item.summary !== news[index].snippet) {
         el.textContent = item.summary
@@ -737,6 +796,12 @@ async function loadNews() {
       }
       btn?.setAttribute('data-label', hasDeep ? 'Summary' : 'Explore')
     })
+
+    // Bound cache to last 200 stories
+    if (enrichedCache.size > 200) {
+      const keys = [...enrichedCache.keys()]
+      keys.slice(0, keys.length - 200).forEach(k => enrichedCache.delete(k))
+    }
   })
 }
 
