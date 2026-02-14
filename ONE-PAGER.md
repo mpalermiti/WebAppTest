@@ -2,7 +2,7 @@
 
 **Tech news, amplified.**
 
-Live at [mpalermiti.github.io/glowstack](https://mpalermiti.github.io/glowstack/)
+Live at [mpalermiti.github.io/glosignal](https://mpalermiti.github.io/glosignal/)
 
 ---
 
