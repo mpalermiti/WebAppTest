@@ -10,6 +10,25 @@ let currentNews = []
 const THEME_KEY = 'newsloop_theme'
 const DEFAULT_THEME = 'warm-ember'
 
+const DARK_THEMES = [
+  { id: 'warm-ember', name: 'Ember', color: '#f0a060' },
+  { id: 'midnight-slate', name: 'Slate', color: '#5b9fff' },
+  { id: 'matrix', name: 'Matrix', color: '#00ff78' },
+  { id: 'graphite', name: 'Graphite', color: '#888' },
+  { id: 'cosmic', name: 'Cosmic', color: '#c78dff' },
+]
+const LIGHT_THEMES = [
+  { id: 'clean-paper', name: 'Paper', color: '#b07830' },
+  { id: 'electric-ink', name: 'Ink', color: '#4a52e0' },
+  { id: 'mint-fresh', name: 'Mint', color: '#0d9668' },
+  { id: 'coral-pop', name: 'Coral', color: '#e05540' },
+  { id: 'lavender-haze', name: 'Lavender', color: '#7c4dca' },
+]
+
+function isDarkTheme(id) {
+  return DARK_THEMES.some(t => t.id === id)
+}
+
 function getTheme() {
   return localStorage.getItem(THEME_KEY) || DEFAULT_THEME
 }
@@ -20,12 +39,24 @@ function setTheme(theme) {
   const scrollRatio = docHeight > window.innerHeight ? scrollY / (docHeight - window.innerHeight) : 0
   document.documentElement.setAttribute('data-theme', theme)
   localStorage.setItem(THEME_KEY, theme)
-  document.querySelectorAll('.theme-bar').forEach(s => {
-    s.classList.toggle('active', s.dataset.theme === theme)
-  })
-  // Restore relative scroll position after font-driven reflow
+  updateThemeSelector(theme)
   const newDocHeight = document.documentElement.scrollHeight
   window.scrollTo(0, scrollRatio * (newDocHeight - window.innerHeight))
+}
+
+function updateThemeSelector(theme) {
+  const dark = isDarkTheme(theme)
+  document.querySelectorAll('.theme-mode-btn').forEach(b => {
+    b.classList.toggle('active', (b.dataset.mode === 'dark') === dark)
+  })
+  document.querySelectorAll('.theme-accent').forEach(d => {
+    d.classList.toggle('active', d.dataset.theme === theme)
+  })
+  // Show the right accent group
+  const group = dark ? 'dark' : 'light'
+  document.querySelectorAll('.theme-accent-group').forEach(g => {
+    g.style.display = g.dataset.group === group ? 'flex' : 'none'
+  })
 }
 
 // Apply theme immediately (before render)
@@ -105,12 +136,17 @@ app.innerHTML = `
       `).join('')}
     </div>
     <div class="theme-selector">
-      <button class="theme-bar${getTheme() === 'warm-ember' ? ' active' : ''}" data-theme="warm-ember" data-name="Ember" style="--bar:#f0a060"></button>
-      <button class="theme-bar${getTheme() === 'deep-indigo' ? ' active' : ''}" data-theme="deep-indigo" data-name="Indigo" style="--bar:#8b96ff"></button>
-      <button class="theme-bar${getTheme() === 'midnight-slate' ? ' active' : ''}" data-theme="midnight-slate" data-name="Slate" style="--bar:#5b9fff"></button>
-      <button class="theme-bar${getTheme() === 'matrix' ? ' active' : ''}" data-theme="matrix" data-name="Matrix" style="--bar:#00ff78"></button>
-      <button class="theme-bar${getTheme() === 'graphite' ? ' active' : ''}" data-theme="graphite" data-name="Graphite" style="--bar:#888"></button>
-      <button class="theme-bar${getTheme() === 'cosmic' ? ' active' : ''}" data-theme="cosmic" data-name="Cosmic" style="--bar:#c78dff"></button>
+      <div class="theme-mode-toggle">
+        <button class="theme-mode-btn${isDarkTheme(getTheme()) ? ' active' : ''}" data-mode="dark" aria-label="Dark mode">&#9790;</button>
+        <button class="theme-mode-btn${!isDarkTheme(getTheme()) ? ' active' : ''}" data-mode="light" aria-label="Light mode">&#9728;</button>
+      </div>
+      <div class="theme-accent-divider"></div>
+      <div class="theme-accent-group" data-group="dark" style="display:${isDarkTheme(getTheme()) ? 'flex' : 'none'}">
+        ${DARK_THEMES.map(t => `<button class="theme-accent${getTheme() === t.id ? ' active' : ''}" data-theme="${t.id}" data-name="${t.name}" style="--dot:${t.color}" aria-label="${t.name}"></button>`).join('')}
+      </div>
+      <div class="theme-accent-group" data-group="light" style="display:${!isDarkTheme(getTheme()) ? 'flex' : 'none'}">
+        ${LIGHT_THEMES.map(t => `<button class="theme-accent${getTheme() === t.id ? ' active' : ''}" data-theme="${t.id}" data-name="${t.name}" style="--dot:${t.color}" aria-label="${t.name}"></button>`).join('')}
+      </div>
     </div>
   </div>
   <div class="briefing-overlay" id="briefing-overlay" style="display:none">
@@ -710,8 +746,22 @@ function setupInteractions() {
 
 document.getElementById('page-title').addEventListener('click', () => location.reload())
 document.getElementById('header-clear-btn').addEventListener('click', clearFilter)
-document.querySelectorAll('.theme-bar').forEach(bar => {
-  bar.addEventListener('click', () => setTheme(bar.dataset.theme))
+// Theme accent dots
+document.querySelectorAll('.theme-accent').forEach(dot => {
+  dot.addEventListener('click', () => setTheme(dot.dataset.theme))
+})
+
+// Theme mode toggle (dark/light)
+document.querySelectorAll('.theme-mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const targetMode = btn.dataset.mode
+    const current = getTheme()
+    const currentIsDark = isDarkTheme(current)
+    if ((targetMode === 'dark') === currentIsDark) return
+    // Switch to first theme of the target mode
+    const targetThemes = targetMode === 'dark' ? DARK_THEMES : LIGHT_THEMES
+    setTheme(targetThemes[0].id)
+  })
 })
 
 // ——— Init ———
